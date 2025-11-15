@@ -1,7 +1,5 @@
 import express from 'express';
-import formidable from 'formidable';
 import cors from 'cors';
-import fs from 'fs';
 import OpenAI from 'openai';
 import 'dotenv/config';
 
@@ -13,69 +11,27 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.post('/api/setup-assistant', async (req, res) => {
-  try {
-    const form = formidable({ multiples: false });
-
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        console.error('Form parse error:', err);
-        return res.status(500).json({ error: err.message });
-      }
-
-      try {
-        const fileArray = files.file;
-        const file = Array.isArray(fileArray) ? fileArray[0] : fileArray;
-
-        console.log('Uploading file to OpenAI...');
-        const uploadedFile = await openai.files.create({
-          file: fs.createReadStream(file.filepath),
-          purpose: 'assistants',
-        });
-
-        console.log('Creating vector store...');
-        const vectorStore = await openai.beta.vectorStores.create({
-          name: 'PDF Documents',
-          file_ids: [uploadedFile.id],
-        });
-
-        console.log('Creating assistant...');
-        const assistant = await openai.beta.assistants.create({
-          name: 'PDF Assistant',
-          instructions: 'You are a helpful assistant that answers questions about the uploaded PDF document. Always provide detailed answers based on the document content.',
-          model: 'gpt-4o',
-          tools: [{ type: 'file_search' }],
-          tool_resources: {
-            file_search: {
-              vector_store_ids: [vectorStore.id]
-            }
-          }
-        });
-
-        console.log('Creating thread...');
-        const thread = await openai.beta.threads.create();
-
-        res.json({
-          assistantId: assistant.id,
-          threadId: thread.id,
-        });
-      } catch (error) {
-        console.error('Setup error:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-  } catch (error) {
-    console.error('Request error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+const assistantId = process.env.OPENAI_ASSISTANT_ID;
+const threads = new Map();
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, threadId, assistantId } = req.body;
+    const { message } = req.body;
 
-    if (!message || !threadId || !assistantId) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    if (!assistantId) {
+      return res.status(500).json({ error: 'Assistant not configured. Run: node setup-openai.js' });
+    }
+
+    let threadId = threads.get('default');
+    if (!threadId) {
+      console.log('Creating new thread...');
+      const thread = await openai.beta.threads.create();
+      threadId = thread.id;
+      threads.set('default', threadId);
     }
 
     console.log('Adding message to thread...');
