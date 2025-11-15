@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { FileText, Upload, Trash2, Calendar, HardDrive } from 'lucide-react';
 import { fetchDocuments } from '../services/chatService';
+import { deleteDocument } from '../services/uploadService';
+import BulkUpload from './BulkUpload';
 import type { Document } from '../types';
 
 export default function DocumentManager() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showUpload, setShowUpload] = useState(false);
 
   useEffect(() => {
     loadDocuments();
@@ -20,6 +23,18 @@ export default function DocumentManager() {
       console.error('Failed to load documents:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (documentId: string) => {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+
+    try {
+      await deleteDocument(documentId);
+      await loadDocuments();
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      alert('Failed to delete document');
     }
   };
 
@@ -56,14 +71,22 @@ export default function DocumentManager() {
                 </p>
               </div>
             </div>
-            <button className="bg-white text-primary px-5 py-2.5 rounded-xl font-semibold hover:bg-accent hover:text-dark hover:ring-2 hover:ring-accent transition-all duration-300 flex items-center gap-2 shadow-lg transform hover:scale-105">
+            <button
+              onClick={() => setShowUpload(!showUpload)}
+              className="bg-white text-primary px-5 py-2.5 rounded-xl font-semibold hover:bg-accent hover:text-dark hover:ring-2 hover:ring-accent transition-all duration-300 flex items-center gap-2 shadow-lg transform hover:scale-105"
+            >
               <Upload className="w-4 h-4" />
-              Upload PDF
+              {showUpload ? 'Hide Upload' : 'Upload PDFs'}
             </button>
           </div>
         </div>
 
         <div className="p-6">
+          {showUpload && (
+            <div className="mb-6">
+              <BulkUpload onUploadComplete={loadDocuments} />
+            </div>
+          )}
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
@@ -77,7 +100,10 @@ export default function DocumentManager() {
               <p className="text-gray-400 mb-6">
                 Upload your first PDF document to get started with AI-powered Q&A
               </p>
-              <button className="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-accent/30 hover:ring-2 hover:ring-accent/50 transition-all duration-300 inline-flex items-center gap-2 transform hover:scale-105">
+              <button
+                onClick={() => setShowUpload(true)}
+                className="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-accent/30 hover:ring-2 hover:ring-accent/50 transition-all duration-300 inline-flex items-center gap-2 transform hover:scale-105"
+              >
                 <Upload className="w-4 h-4" />
                 Upload Document
               </button>
@@ -117,7 +143,10 @@ export default function DocumentManager() {
                         </div>
                       </div>
                     </div>
-                    <button className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2.5 rounded-xl transition-all">
+                    <button
+                      onClick={() => handleDelete(doc.id)}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2.5 rounded-xl transition-all"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
