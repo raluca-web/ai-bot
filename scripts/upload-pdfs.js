@@ -34,8 +34,15 @@ async function uploadPDF(filePath) {
     );
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Upload failed');
+      const errorText = await response.text();
+      console.error(`Response status: ${response.status}`);
+      console.error(`Response body: ${errorText}`);
+      try {
+        const error = JSON.parse(errorText);
+        throw new Error(error.error || 'Upload failed');
+      } catch {
+        throw new Error(`Upload failed: ${errorText || response.statusText}`);
+      }
     }
 
     const result = await response.json();
