@@ -18,24 +18,13 @@ async function setup() {
     });
     console.log('File uploaded:', file.id);
 
-    console.log('Creating vector store...');
-    const vectorStore = await openai.beta.vectorStores.create({
-      name: 'DeepCharts Knowledge Base',
-      file_ids: [file.id],
-    });
-    console.log('Vector store created:', vectorStore.id);
-
     console.log('Creating assistant...');
     const assistant = await openai.beta.assistants.create({
       name: 'DeepCharts Assistant',
       instructions: 'You are a helpful assistant that answers questions about DeepCharts. Answer based on the FAQ guide provided.',
-      model: 'gpt-4o',
-      tools: [{ type: 'file_search' }],
-      tool_resources: {
-        file_search: {
-          vector_store_ids: [vectorStore.id]
-        }
-      }
+      model: 'gpt-4-turbo-preview',
+      tools: [{ type: 'retrieval' }],
+      file_ids: [file.id]
     });
     console.log('Assistant created:', assistant.id);
 
