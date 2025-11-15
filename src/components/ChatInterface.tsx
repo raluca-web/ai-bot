@@ -197,7 +197,7 @@ export default function ChatInterface() {
           <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="bg-gradient-to-r from-primary to-primary-dark text-white px-8 py-4 rounded-2xl hover:shadow-lg hover:shadow-accent/30 hover:ring-2 hover:ring-accent/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center gap-2 transform hover:scale-105"
+            className="bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] text-white px-8 py-4 rounded-2xl shadow-[0_0_40px_rgba(124,58,237,0.15)] hover:shadow-[0_0_50px_rgba(124,58,237,0.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center gap-2 transform hover:scale-[1.02]"
           >
             <Send className="w-5 h-5" />
             Send
