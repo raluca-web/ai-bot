@@ -105,7 +105,7 @@ export default function ChatInterface() {
                   <button
                     key={index}
                     onClick={() => setInput(suggestion)}
-                    className="text-left p-5 bg-dark-card rounded-2xl border-2 border-accent hover:border-accent hover:bg-dark-card/80 transition-all duration-300 text-sm text-gray-300 hover:text-white transform hover:scale-[1.02]"
+                    className="text-left p-5 bg-dark-card rounded-2xl border border-gray-400 hover:border-gray-300 hover:bg-dark-card/80 transition-all duration-300 text-sm text-gray-400 hover:text-white transform hover:scale-[1.02]"
                   >
                     {suggestion}
                   </button>
