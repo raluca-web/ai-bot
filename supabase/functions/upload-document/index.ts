@@ -194,9 +194,19 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error) {
     console.error("Upload error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Upload failed";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error("Error details:", {
+      message: errorMessage,
+      stack: errorStack,
+      type: error?.constructor?.name
+    });
+
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : "Upload failed",
+        error: errorMessage,
+        details: errorStack
       }),
       {
         status: 500,
