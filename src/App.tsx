@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Loader2 } from 'lucide-react';
+import { MessageSquare, Loader2, Check } from 'lucide-react';
 import DeepChartsLogo from './components/DeepChartsLogo';
 
 function App() {
@@ -8,6 +8,13 @@ function App() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+
+  const handleCopyLink = (url: string, label: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedLink(label);
+    setTimeout(() => setCopiedLink(null), 2000);
+  };
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -40,14 +47,51 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a14] via-[#12101f] to-[#0a0a14] text-white">
       <div className="container mx-auto px-4 py-8 h-screen flex flex-col max-w-5xl">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
             <DeepChartsLogo className="w-48 h-8" />
+            <div className="flex items-center gap-6">
+              <button
+                onClick={() => handleCopyLink('https://deepcharts.io', 'Home')}
+                className="text-gray-400 hover:text-white transition-colors relative"
+              >
+                Home
+                {copiedLink === 'Home' && (
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary px-2 py-1 rounded text-xs flex items-center gap-1 whitespace-nowrap">
+                    <Check className="w-3 h-3" /> Copied!
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleCopyLink('https://deepcharts.io/docs', 'Docs')}
+                className="text-gray-400 hover:text-white transition-colors relative"
+              >
+                Docs
+                {copiedLink === 'Docs' && (
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary px-2 py-1 rounded text-xs flex items-center gap-1 whitespace-nowrap">
+                    <Check className="w-3 h-3" /> Copied!
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleCopyLink('https://deepcharts.io/support', 'Support')}
+                className="text-gray-400 hover:text-white transition-colors relative"
+              >
+                Support
+                {copiedLink === 'Support' && (
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary px-2 py-1 rounded text-xs flex items-center gap-1 whitespace-nowrap">
+                    <Check className="w-3 h-3" /> Copied!
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-light via-accent to-accent-light bg-clip-text text-transparent">
-            AI Assistant
-          </h1>
-          <p className="text-gray-400">Ask me anything about DeepCharts</p>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-light via-accent to-accent-light bg-clip-text text-transparent">
+              AI Assistant
+            </h1>
+            <p className="text-gray-400">Ask me anything about DeepCharts</p>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col bg-[#0f0f0f]/80 backdrop-blur-sm rounded-2xl border border-primary/20 overflow-hidden shadow-2xl">
