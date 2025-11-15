@@ -16,10 +16,13 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    const fileId = process.env.OPENAI_FILE_ID;
+
     // Add message to thread
     await openai.beta.threads.messages.create(threadId, {
       role: 'user',
       content: message,
+      attachments: fileId ? [{ file_id: fileId, tools: [{ type: 'file_search' }] }] : undefined,
     });
 
     // Run assistant

@@ -18,33 +18,18 @@ async function setup() {
     });
     console.log('File uploaded:', file.id);
 
-    console.log('Creating vector store...');
-    const vectorStore = await openai.beta.vectorStores.create({
-      name: 'DeepCharts Knowledge Base',
-    });
-
-    await openai.beta.vectorStores.files.create(vectorStore.id, {
-      file_id: file.id,
-    });
-    console.log('Vector store created:', vectorStore.id);
-
     console.log('Creating assistant...');
     const assistant = await openai.beta.assistants.create({
       name: 'DeepCharts Assistant',
-      instructions: 'You are a helpful assistant that answers questions about DeepCharts. Answer based on the FAQ guide provided.',
+      instructions: 'You are a helpful assistant that answers questions about DeepCharts. Use the uploaded file to answer questions.',
       model: 'gpt-4o',
-      tools: [{ type: 'file_search' }],
-      tool_resources: {
-        file_search: {
-          vector_store_ids: [vectorStore.id]
-        }
-      }
     });
     console.log('Assistant created:', assistant.id);
 
     console.log('\n=== SETUP COMPLETE ===');
-    console.log('Add this to your .env file:');
+    console.log('Add these to your .env file:');
     console.log(`OPENAI_ASSISTANT_ID=${assistant.id}`);
+    console.log(`OPENAI_FILE_ID=${file.id}`);
   } catch (error) {
     console.error('Error:', error.message);
   }
