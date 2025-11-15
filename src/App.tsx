@@ -86,7 +86,7 @@ function App() {
               <button
                 onClick={handleSendMessage}
                 disabled={loading || !input.trim()}
-                className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary disabled:from-gray-700 disabled:to-gray-600 px-6 py-3 rounded-xl font-medium transition-all shadow-lg hover:shadow-primary/50 disabled:shadow-none"
+                className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary disabled:from-gray-700 disabled:to-gray-600 px-6 py-3 rounded-xl font-medium transition-all shadow-[0_0_20px_rgba(81,47,235,0.6)] hover:shadow-[0_0_30px_rgba(81,47,235,0.8)] disabled:shadow-none"
               >
                 <MessageSquare className="w-5 h-5" />
               </button>
