@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import OpenAI from "npm:openai@4";
+import * as pdfjs from "npm:pdfjs-dist@4.0.379";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,79 +59,43 @@ Deno.serve(async (req: Request) => {
     const fileBuffer = await file.arrayBuffer();
     console.log(`Buffer size: ${fileBuffer.byteLength} bytes`);
 
-    console.log("Extracting text from PDF...");
+    console.log("Extracting text from PDF using pdf.js...");
     const uint8Array = new Uint8Array(fileBuffer);
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    const rawText = decoder.decode(uint8Array);
 
-    const textParts: string[] = [];
-    const streamPattern = /stream\s*([\s\S]*?)\s*endstream/g;
-    let match;
+    let text = "";
+    let pageCount = 0;
 
-    while ((match = streamPattern.exec(rawText)) !== null) {
-      const streamContent = match[1];
-      const cleanText = streamContent
-        .replace(/[^\x20-\x7E\n]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    try {
+      const loadingTask = pdfjs.getDocument({ data: uint8Array });
+      const pdf = await loadingTask.promise;
+      pageCount = pdf.numPages;
+      console.log(`PDF has ${pageCount} pages`);
 
-      if (cleanText && cleanText.length > 10) {
-        textParts.push(cleanText);
+      const textParts: string[] = [];
+
+      for (let i = 1; i <= pageCount; i++) {
+        console.log(`Processing page ${i}/${pageCount}...`);
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+
+        if (pageText.trim()) {
+          textParts.push(pageText.trim());
+        }
       }
+
+      text = textParts.join('\n\n').trim();
+      console.log(`Extracted ${text.length} characters from PDF`);
+
+    } catch (pdfError: any) {
+      console.error("PDF parsing error:", pdfError);
+      throw new Error(`Failed to parse PDF: ${pdfError.message}`);
     }
 
-    console.log(`Extracted ${textParts.length} text parts from streams`);
-
-    const pagePattern = /\/Type\s*\/Page/g;
-    const pageMatches = rawText.match(pagePattern);
-    const pageCount = pageMatches ? pageMatches.length : 1;
-
-    let text = textParts.join('\n\n').trim();
-    console.log(`Initial text extraction: ${text.length} characters from ${pageCount} pages`);
-
-    // Check if the extracted text is actually readable (not binary garbage)
-    const readableCharCount = (text.match(/[a-zA-Z0-9]/g) || []).length;
-    const readableRatio = text.length > 0 ? readableCharCount / text.length : 0;
-    console.log(`Readable ratio: ${readableRatio.toFixed(2)} (${readableCharCount}/${text.length})`);
-
-    if (!text || text.length < 50 || readableRatio < 0.5) {
-      console.log("PDF appears to be image-based or has unreadable text, using OCR via OpenAI Vision...");
-
-      const base64Pdf = btoa(String.fromCharCode(...uint8Array));
-
-      try {
-        const visionResponse = await openai.chat.completions.create({
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "This is a PDF document. Please extract ALL the text content from this document. Preserve the structure and formatting as much as possible. Include headings, paragraphs, lists, and any other text you can see."
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:application/pdf;base64,${base64Pdf}`
-                  }
-                }
-              ]
-            }
-          ],
-          max_tokens: 4000
-        });
-
-        text = visionResponse.choices[0].message.content || "";
-        console.log(`OCR extracted ${text.length} characters`);
-
-        if (!text || text.length < 50) {
-          throw new Error("Could not extract text from image-based PDF even with OCR");
-        }
-      } catch (ocrError: any) {
-        console.error("OCR error:", ocrError);
-        throw new Error(`Failed to extract text from image-based PDF: ${ocrError.message}`);
-      }
+    if (!text || text.length < 50) {
+      throw new Error("Could not extract any text from PDF. The document may be empty or corrupted.");
     }
 
     console.log("Saving document to database...");
