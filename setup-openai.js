@@ -1,6 +1,9 @@
 import OpenAI from 'openai';
 import fs from 'fs';
+import { File as NodeFile } from 'node:buffer';
 import 'dotenv/config';
+
+globalThis.File = NodeFile;
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
