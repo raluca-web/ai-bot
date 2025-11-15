@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.57.4";
-import OpenAI from "npm:openai@6.9.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import OpenAI from "npm:openai@4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,7 +46,7 @@ Deno.serve(async (req: Request) => {
     let pageCount = 0;
 
     try {
-      const pdfjs = await import("npm:pdfjs-dist@4.0.379");
+      const pdfjs = await import("npm:pdfjs-dist@4");
 
       const loadingTask = pdfjs.getDocument({
         data: uint8Array,
