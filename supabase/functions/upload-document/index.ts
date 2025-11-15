@@ -1,13 +1,43 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import OpenAI from "npm:openai@4";
-import { getDocument } from "npm:pdfjs-dist@4.8.69";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
+
+async function extractTextFromPDF(buffer: ArrayBuffer): Promise<{ text: string; pageCount: number }> {
+  const pdfjsLib = await import("npm:pdfjs-dist@3.11.174");
+
+  const loadingTask = pdfjsLib.default.getDocument({
+    data: new Uint8Array(buffer),
+    verbosity: 0,
+  });
+
+  const pdf = await loadingTask.promise;
+  const pageCount = pdf.numPages;
+  const textParts: string[] = [];
+
+  for (let i = 1; i <= pageCount; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items
+      .map((item: any) => ('str' in item ? item.str : ''))
+      .filter((text: string) => text.trim().length > 0)
+      .join(' ');
+
+    if (pageText.trim()) {
+      textParts.push(pageText);
+    }
+  }
+
+  return {
+    text: textParts.join('\n\n'),
+    pageCount
+  };
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -43,43 +73,12 @@ Deno.serve(async (req: Request) => {
     console.log(`Processing file: ${file.name}, size: ${file.size} bytes`);
 
     const fileBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(fileBuffer);
 
-    console.log("Starting PDF parsing...");
+    console.log("Extracting text from PDF...");
 
-    let text = "";
-    let pageCount = 0;
+    const { text, pageCount } = await extractTextFromPDF(fileBuffer);
 
-    try {
-      const loadingTask = getDocument({
-        data: uint8Array,
-        useSystemFonts: true,
-        disableFontFace: true,
-        standardFontDataUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/standard_fonts/",
-      });
-
-      const pdf = await loadingTask.promise;
-      pageCount = pdf.numPages;
-      console.log(`PDF has ${pageCount} pages`);
-
-      const textParts: string[] = [];
-
-      for (let i = 1; i <= pageCount; i++) {
-        console.log(`Extracting text from page ${i}...`);
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        textParts.push(pageText);
-      }
-
-      text = textParts.join('\n\n');
-      console.log(`Extracted ${text.length} characters of text`);
-    } catch (error) {
-      console.error("PDF parsing error:", error);
-      throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    console.log(`Extracted ${text.length} characters from ${pageCount} pages`);
 
     if (!text || text.trim().length === 0) {
       throw new Error("No text content found in PDF");
@@ -112,11 +111,10 @@ Deno.serve(async (req: Request) => {
       chunks.push(text.slice(i, i + chunkSize));
     }
 
-    console.log(`Creating ${chunks.length} chunks...`);
+    console.log(`Creating ${chunks.length} embeddings...`);
 
     const embeddings = [];
     for (let i = 0; i < chunks.length; i++) {
-      console.log(`Generating embedding ${i + 1}/${chunks.length}...`);
       const chunk = chunks[i];
       const embeddingResponse = await openai.embeddings.create({
         model: "text-embedding-ada-002",
