@@ -85,11 +85,47 @@ Deno.serve(async (req: Request) => {
     const pageMatches = rawText.match(pagePattern);
     const pageCount = pageMatches ? pageMatches.length : 1;
 
-    const text = textParts.join('\n\n').trim();
-    console.log(`Final text length: ${text.length} characters, ${pageCount} pages`);
+    let text = textParts.join('\n\n').trim();
+    console.log(`Initial text extraction: ${text.length} characters from ${pageCount} pages`);
 
     if (!text || text.length < 50) {
-      throw new Error(`Could not extract sufficient text from PDF (only got ${text.length} characters). The PDF may be image-based or encrypted.`);
+      console.log("PDF appears to be image-based, using OCR via OpenAI Vision...");
+
+      const base64Pdf = btoa(String.fromCharCode(...uint8Array));
+
+      try {
+        const visionResponse = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "This is a PDF document. Please extract ALL the text content from this document. Preserve the structure and formatting as much as possible. Include headings, paragraphs, lists, and any other text you can see."
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:application/pdf;base64,${base64Pdf}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 4000
+        });
+
+        text = visionResponse.choices[0].message.content || "";
+        console.log(`OCR extracted ${text.length} characters`);
+
+        if (!text || text.length < 50) {
+          throw new Error("Could not extract text from image-based PDF even with OCR");
+        }
+      } catch (ocrError: any) {
+        console.error("OCR error:", ocrError);
+        throw new Error(`Failed to extract text from image-based PDF: ${ocrError.message}`);
+      }
     }
 
     console.log("Saving document to database...");
@@ -127,7 +163,7 @@ Deno.serve(async (req: Request) => {
 
       try {
         const embeddingResponse = await openai.embeddings.create({
-          model: "text-embedding-ada-002",
+          model: "text-embedding-3-small",
           input: chunk,
         });
 
@@ -191,5 +227,6 @@ Deno.serve(async (req: Request) => {
           "Content-Type": "application/json",
         },
       }
-    );  }
+    );
+  }
 });
