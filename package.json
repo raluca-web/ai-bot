@@ -1,28 +1,18 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "deepcharts-assistant",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "api": "node server.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.7.0",
-    "@supabase/supabase-js": "^2.57.4",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^5.1.0",
-    "form-data": "^4.0.0",
-    "formidable": "^3.5.4",
     "lucide-react": "^0.344.0",
-    "node-fetch": "^3.3.2",
     "openai": "^6.9.0",
-    "pdf-parse": "^2.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

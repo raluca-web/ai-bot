@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageSquare, Loader2, Check } from 'lucide-react';
 import DeepChartsLogo from './components/DeepChartsLogo';
+import { openai, assistantId } from './lib/openai';
 
 function App() {
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([
@@ -9,6 +10,19 @@ function App() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [threadId, setThreadId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const initThread = async () => {
+      try {
+        const thread = await openai.beta.threads.create();
+        setThreadId(thread.id);
+      } catch (error) {
+        console.error('Failed to create thread:', error);
+      }
+    };
+    initThread();
+  }, []);
 
   const handleCopyLink = (url: string, label: string) => {
     navigator.clipboard.writeText(url);
@@ -17,7 +31,7 @@ function App() {
   };
 
   const handleSendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !threadId || !assistantId) return;
 
     const userMessage = input;
     setInput('');
@@ -25,23 +39,25 @@ function App() {
     setLoading(true);
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseKey}`
-        },
-        body: JSON.stringify({ question: userMessage }),
+      await openai.beta.threads.messages.create(threadId, {
+        role: 'user',
+        content: userMessage,
       });
 
-      const data = await response.json();
-      if (data.answer) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
+      const run = await openai.beta.threads.runs.createAndPoll(threadId, {
+        assistant_id: assistantId,
+      });
+
+      if (run.status === 'completed') {
+        const messages = await openai.beta.threads.messages.list(threadId);
+        const lastMessage = messages.data[0];
+        const response = lastMessage.content[0].type === 'text'
+          ? lastMessage.content[0].text.value
+          : 'Unable to get response';
+
+        setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       } else {
-        throw new Error(data.error || 'Chat failed');
+        throw new Error(`Run status: ${run.status}`);
       }
     } catch (error: any) {
       setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
