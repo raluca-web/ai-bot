@@ -86,12 +86,6 @@ function App() {
               </button>
             </div>
           </div>
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-light via-accent to-accent-light bg-clip-text text-transparent">
-              AI Assistant
-            </h1>
-            <p className="text-gray-400">Ask me anything about DeepCharts</p>
-          </div>
         </div>
 
         <div className="flex-1 flex flex-col bg-[#0f0f0f]/80 backdrop-blur-sm rounded-2xl border border-primary/20 overflow-hidden shadow-2xl">
