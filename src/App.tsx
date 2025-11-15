@@ -80,7 +80,7 @@ function App() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Ask a question about DeepCharts..."
-                className="flex-1 bg-dark-lighter text-white px-5 py-3 rounded-xl border border-primary/30 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent placeholder-gray-500 transition-all"
+                className="flex-1 bg-dark-lighter text-white px-5 py-3 rounded-xl border border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent placeholder-gray-500 transition-all"
                 disabled={loading}
               />
               <button
