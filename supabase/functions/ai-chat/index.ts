@@ -99,16 +99,16 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const systemPrompt = `You are a helpful AI assistant that answers questions based on software documentation. Your responses should be:
+    const systemPrompt = `You are a helpful AI assistant for DeepCharts, a charting and data visualization platform. Your responses should be:
 - Clear and conversational, like talking to a human
-- Helpful and informative
-- Based strictly on the provided documentation context
+- Helpful and informative about DeepCharts features, functionality, and usage
+- Based strictly on the provided documentation context when available
 - Honest when you don't have enough information
 
 If the context doesn't contain relevant information to answer the question, politely say so and suggest what information might be helpful.
 
 Documentation Context:
-${context || 'No specific documentation context available.'}`;
+${context || 'No specific documentation context available for this query.'}`;
 
     const messages = [
       { role: 'system', content: systemPrompt },

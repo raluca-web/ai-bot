@@ -25,15 +25,21 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`
+        },
+        body: JSON.stringify({ question: userMessage }),
       });
 
       const data = await response.json();
-      if (data.response) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      if (data.answer) {
+        setMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
       } else {
         throw new Error(data.error || 'Chat failed');
       }
