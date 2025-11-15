@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
       'search_documents',
       {
         query_embedding: questionEmbedding,
-        match_threshold: 0.7,
+        match_threshold: 0.5,
         match_count: 5,
       }
     );
@@ -79,8 +79,10 @@ Deno.serve(async (req: Request) => {
       console.error('Search error:', searchError);
     }
 
+    console.log(`Found ${relevantChunks?.length || 0} relevant chunks`);
+
     const context = relevantChunks && relevantChunks.length > 0
-      ? relevantChunks.map((chunk: any) => chunk.chunk_text).join('\n\n')
+      ? relevantChunks.map((chunk: any) => chunk.content).join('\n\n')
       : '';
 
     let conversationHistory = [];
