@@ -88,8 +88,13 @@ Deno.serve(async (req: Request) => {
     let text = textParts.join('\n\n').trim();
     console.log(`Initial text extraction: ${text.length} characters from ${pageCount} pages`);
 
-    if (!text || text.length < 50) {
-      console.log("PDF appears to be image-based, using OCR via OpenAI Vision...");
+    // Check if the extracted text is actually readable (not binary garbage)
+    const readableCharCount = (text.match(/[a-zA-Z0-9]/g) || []).length;
+    const readableRatio = text.length > 0 ? readableCharCount / text.length : 0;
+    console.log(`Readable ratio: ${readableRatio.toFixed(2)} (${readableCharCount}/${text.length})`);
+
+    if (!text || text.length < 50 || readableRatio < 0.5) {
+      console.log("PDF appears to be image-based or has unreadable text, using OCR via OpenAI Vision...");
 
       const base64Pdf = btoa(String.fromCharCode(...uint8Array));
 
