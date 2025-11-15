@@ -46,19 +46,31 @@ Deno.serve(async (req: Request) => {
     let pageCount = 0;
 
     try {
-      const pdfModule = await import("npm:pdf-parse@2.4.5");
-      const pdfParse = pdfModule.default;
+      const pdfjs = await import("npm:pdfjs-dist@4.0.379");
 
-      // Convert Uint8Array to Buffer for pdf-parse
-      const { Buffer } = await import("node:buffer");
-      const buffer = Buffer.from(uint8Array);
+      const loadingTask = pdfjs.getDocument({
+        data: uint8Array,
+        useSystemFonts: true,
+      });
 
-      const data = await pdfParse(buffer);
-      text = data.text;
-      pageCount = data.numpages;
+      const pdf = await loadingTask.promise;
+      pageCount = pdf.numPages;
+
+      const textParts: string[] = [];
+
+      for (let i = 1; i <= pageCount; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        textParts.push(pageText);
+      }
+
+      text = textParts.join('\n\n');
     } catch (error) {
       console.error("PDF parsing error:", error);
-      throw new Error("Failed to parse PDF file");
+      throw new Error(`Failed to parse PDF file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     if (!text || text.trim().length === 0) {
