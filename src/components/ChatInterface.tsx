@@ -67,8 +67,10 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-dark">
-      <header className="bg-dark-card/50 border-b border-white/10 px-6 py-5 backdrop-blur-xl">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-[#0a0a0f] via-[#0f0a1a] to-[#0a0a0f] relative">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.15),transparent_50%)] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(124,58,237,0.1),transparent_50%)] pointer-events-none"></div>
+      <header className="bg-dark-card/30 border-b border-white/10 px-6 py-5 backdrop-blur-xl relative z-10">
         <div className="max-w-5xl mx-auto flex items-center gap-4">
           <div className="bg-gradient-to-br from-primary to-primary-dark px-4 py-3 rounded-2xl shadow-lg shadow-primary/20">
             <DeepChartsLogo className="w-28 h-auto" />
@@ -80,7 +82,7 @@ export default function ChatInterface() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 relative z-10">
         <div className="max-w-4xl mx-auto space-y-6">
           {messages.length === 0 && (
             <div className="text-center py-16 space-y-6">
@@ -183,7 +185,7 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 bg-dark-card/50 backdrop-blur-xl px-4 py-5">
+      <div className="border-t border-white/10 bg-dark-card/30 backdrop-blur-xl px-4 py-5 relative z-10">
         <div className="max-w-4xl mx-auto flex gap-3">
           <textarea
             value={input}
