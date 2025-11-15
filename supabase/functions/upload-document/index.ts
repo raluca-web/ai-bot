@@ -48,7 +48,12 @@ Deno.serve(async (req: Request) => {
     try {
       const pdfModule = await import("npm:pdf-parse@2.4.5");
       const pdfParse = pdfModule.default;
-      const data = await pdfParse(uint8Array);
+
+      // Convert Uint8Array to Buffer for pdf-parse
+      const { Buffer } = await import("node:buffer");
+      const buffer = Buffer.from(uint8Array);
+
+      const data = await pdfParse(buffer);
       text = data.text;
       pageCount = data.numpages;
     } catch (error) {
