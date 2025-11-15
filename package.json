@@ -8,12 +8,16 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "upload-pdfs": "node scripts/upload-pdfs.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.4",
+    "dotenv": "^16.4.5",
+    "form-data": "^4.0.0",
     "lucide-react": "^0.344.0",
+    "node-fetch": "^3.3.2",
     "openai": "^6.9.0",
     "pdf-parse": "^2.4.5",
     "react": "^18.3.1",
