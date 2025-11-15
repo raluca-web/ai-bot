@@ -38,7 +38,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-dark text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a14] via-[#12101f] to-[#0a0a14] text-white">
       <div className="container mx-auto px-4 py-8 h-screen flex flex-col max-w-5xl">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -50,7 +50,7 @@ function App() {
           <p className="text-gray-400">Ask me anything about DeepCharts</p>
         </div>
 
-        <div className="flex-1 flex flex-col bg-dark-card rounded-2xl border border-primary/20 overflow-hidden shadow-2xl">
+        <div className="flex-1 flex flex-col bg-[#0f0f0f]/80 backdrop-blur-sm rounded-2xl border border-primary/20 overflow-hidden shadow-2xl">
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
