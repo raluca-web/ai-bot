@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MessageSquare, Loader2 } from 'lucide-react';
+import DeepChartsLogo from './components/DeepChartsLogo';
 
 function App() {
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([
@@ -37,50 +38,55 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      <div className="container mx-auto px-4 py-8 h-screen flex flex-col">
+    <div className="min-h-screen bg-dark text-white">
+      <div className="container mx-auto px-4 py-8 h-screen flex flex-col max-w-5xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">DeepCharts AI Assistant</h1>
-          <p className="text-slate-400">Ask me anything about DeepCharts</p>
+          <div className="flex items-center justify-center mb-4">
+            <DeepChartsLogo className="w-48 h-8" />
+          </div>
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary-light via-accent to-accent-light bg-clip-text text-transparent">
+            AI Assistant
+          </h1>
+          <p className="text-gray-400">Ask me anything about DeepCharts</p>
         </div>
 
-        <div className="flex-1 flex flex-col bg-slate-800/50 rounded-2xl overflow-hidden">
+        <div className="flex-1 flex flex-col bg-dark-card rounded-2xl border border-primary/20 overflow-hidden shadow-2xl">
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-2xl px-6 py-3 rounded-2xl ${
+                <div className={`max-w-2xl px-5 py-3 rounded-2xl ${
                   msg.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-700 text-slate-100'
+                    ? 'bg-gradient-to-r from-primary to-primary-light text-white shadow-lg'
+                    : 'bg-dark-lighter border border-accent/20 text-gray-100'
                 }`}>
-                  {msg.content}
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
                 </div>
               </div>
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-slate-700 px-6 py-3 rounded-2xl">
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                <div className="bg-dark-lighter border border-accent/20 px-5 py-3 rounded-2xl">
+                  <Loader2 className="w-5 h-5 animate-spin text-accent" />
                 </div>
               </div>
             )}
           </div>
 
-          <div className="p-4 bg-slate-700/50 border-t border-slate-600">
-            <div className="flex gap-2">
+          <div className="p-4 bg-dark-lighter/50 border-t border-primary/20 backdrop-blur">
+            <div className="flex gap-3">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Ask a question about DeepCharts..."
-                className="flex-1 bg-slate-800 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 bg-dark-lighter text-white px-5 py-3 rounded-xl border border-primary/30 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent placeholder-gray-500 transition-all"
                 disabled={loading}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={loading || !input.trim()}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 px-6 py-3 rounded-xl font-medium transition-colors"
+                className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary disabled:from-gray-700 disabled:to-gray-600 px-6 py-3 rounded-xl font-medium transition-all shadow-lg hover:shadow-primary/50 disabled:shadow-none"
               >
                 <MessageSquare className="w-5 h-5" />
               </button>
