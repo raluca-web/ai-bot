@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, User, FileText } from 'lucide-react';
+import { Send, User, FileText, Upload } from 'lucide-react';
 import { sendMessage } from '../services/chatService';
 import type { ChatResponse } from '../types';
 import DeepChartsLogo from './DeepChartsLogo';
+import BulkUpload from './BulkUpload';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -14,6 +15,7 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -71,16 +73,46 @@ export default function ChatInterface() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.15),transparent_50%)] pointer-events-none"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(124,58,237,0.1),transparent_50%)] pointer-events-none"></div>
       <header className="bg-dark-card/30 border-b border-white/10 px-6 py-5 backdrop-blur-xl relative z-10">
-        <div className="max-w-5xl mx-auto flex items-center gap-4">
-          <div className="bg-gradient-to-br from-primary to-primary-dark px-4 py-3 rounded-2xl shadow-lg shadow-primary/20">
-            <DeepChartsLogo className="w-28 h-auto" />
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-primary to-primary-dark px-4 py-3 rounded-2xl shadow-lg shadow-primary/20">
+              <DeepChartsLogo className="w-28 h-auto" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">AI Documentation Assistant</h1>
+              <p className="text-sm text-gray-400">Ask me anything about your software documentation</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">AI Documentation Assistant</h1>
-            <p className="text-sm text-gray-400">Ask me anything about your software documentation</p>
-          </div>
+          <button
+            onClick={() => setShowUpload(!showUpload)}
+            className="bg-gradient-to-br from-primary to-primary-dark text-white px-5 py-3 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 flex items-center gap-2 font-medium transform hover:scale-[1.02]"
+          >
+            <Upload className="w-5 h-5" />
+            Upload PDFs
+          </button>
         </div>
       </header>
+
+      {showUpload && (
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-20 flex items-center justify-center p-4">
+          <div className="bg-dark-card border border-white/10 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">Upload PDF Documents</h2>
+              <button
+                onClick={() => setShowUpload(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <BulkUpload />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto px-4 py-6 relative z-10">
         <div className="max-w-4xl mx-auto space-y-6">
