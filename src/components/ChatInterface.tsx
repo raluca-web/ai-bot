@@ -108,7 +108,7 @@ export default function ChatInterface() {
               </button>
             </div>
             <div className="p-6">
-              <BulkUpload />
+              <BulkUpload onUploadComplete={() => setShowUpload(false)} />
             </div>
           </div>
         </div>

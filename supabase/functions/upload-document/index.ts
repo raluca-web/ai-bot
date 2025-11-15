@@ -9,34 +9,68 @@ const corsHeaders = {
 };
 
 async function extractTextFromPDF(buffer: ArrayBuffer): Promise<{ text: string; pageCount: number }> {
-  const pdfjsLib = await import("npm:pdfjs-dist@3.11.174");
+  try {
+    const uint8Array = new Uint8Array(buffer);
+    const decoder = new TextDecoder('utf-8', { fatal: false });
 
-  const loadingTask = pdfjsLib.default.getDocument({
-    data: new Uint8Array(buffer),
-    verbosity: 0,
-  });
-
-  const pdf = await loadingTask.promise;
-  const pageCount = pdf.numPages;
-  const textParts: string[] = [];
-
-  for (let i = 1; i <= pageCount; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item: any) => ('str' in item ? item.str : ''))
-      .filter((text: string) => text.trim().length > 0)
-      .join(' ');
-
-    if (pageText.trim()) {
-      textParts.push(pageText);
+    let rawText = '';
+    try {
+      rawText = decoder.decode(uint8Array);
+    } catch {
+      const latin1Decoder = new TextDecoder('iso-8859-1');
+      rawText = latin1Decoder.decode(uint8Array);
     }
-  }
 
-  return {
-    text: textParts.join('\n\n'),
-    pageCount
-  };
+    const textParts: string[] = [];
+    const streamPattern = /stream\s*(.*)\s*endstream/gs;
+    const matches = rawText.matchAll(streamPattern);
+
+    for (const match of matches) {
+      const streamContent = match[1];
+      const cleanText = streamContent
+        .replace(/[^\x20-\x7E\n]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (cleanText && cleanText.length > 10) {
+        textParts.push(cleanText);
+      }
+    }
+
+    const objPattern = /\/Type\s*\/Page[^>]*?>>|BT\s*(.*)\s*ET/gs;
+    const objMatches = rawText.matchAll(objPattern);
+
+    for (const match of objMatches) {
+      if (match[1]) {
+        const cleanText = match[1]
+          .replace(/[^\x20-\x7E\n]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (cleanText && cleanText.length > 10) {
+          textParts.push(cleanText);
+        }
+      }
+    }
+
+    const pagePattern = /\/Type\s*\/Page/g;
+    const pageMatches = rawText.match(pagePattern);
+    const pageCount = pageMatches ? pageMatches.length : 1;
+
+    const text = textParts.join('\n\n').trim();
+
+    if (!text || text.length < 50) {
+      throw new Error('Could not extract sufficient text from PDF');
+    }
+
+    return {
+      text,
+      pageCount
+    };
+  } catch (error) {
+    console.error("PDF extraction error:", error);
+    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 Deno.serve(async (req: Request) => {
